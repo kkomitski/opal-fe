@@ -36,6 +36,10 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Image from "next/image";
 import WSS from "./wss";
+import useTradeSocket from "@/hooks/sockets/useTradeSocket";
+import useBookTickerSocket from "@/hooks/sockets/useBookTickerSocket";
+import CandlestickChart from "../components/charts/candlestick";
+import { useEffect, useState } from "react";
 
 export const description =
   "An application shell with a header and main content area. The header has a navbar, a search input and and a user nav dropdown. The user nav is toggled by a button with an avatar image.";
@@ -45,6 +49,12 @@ export const iframeHeight = "825px";
 export const containerClassName = "w-full h-full";
 
 export default function Dashboard() {
+  // const { message, error } = useTradeSocket("bnbbtc");
+  // const { message, error } = useBookTickerSocket("bnbbtc");
+
+  // console.log(message);
+  // console.log(book)
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -126,28 +136,6 @@ export default function Dashboard() {
         </div>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        {/* 
-          --background: 224 71.4% 4.1%;
-          --foreground: 210 20% 98%;
-          --card: 224 71.4% 4.1%;
-          --card-foreground: 210 20% 98%;
-          --popover: 224 71.4% 4.1%;
-          --popover-foreground: 210 20% 98%;
-          --primary: 263.4 70% 50.4%;
-          --primary-foreground: 210 20% 98%;
-          --secondary: 215 27.9% 16.9%;
-          --secondary-foreground: 210 20% 98%;
-          --muted: 215 27.9% 16.9%;
-          --muted-foreground: 217.9 10.6% 64.9%;
-          --accent: 215 27.9% 16.9%;
-          --accent-foreground: 210 20% 98%;
-          --destructive: 0 62.8% 30.6%;
-          --destructive-foreground: 210 20% 98%;
-          --border: 215 27.9% 16.9%;
-          --input: 215 27.9% 16.9%;
-          --ring: 263.4 70% 50.4%;
-    */}
-
         <div className="bg-slate-300 hidden">
           <p className="py-0 px-0 text-background">background</p>
           <p className="py-0 px-0 text-foreground">foreground</p>
@@ -170,8 +158,6 @@ export default function Dashboard() {
           <p className="py-0 px-0 text-input">input</p>
           <p className="py-0 px-0 text-ring">ring</p>
         </div>
-
-        <WSS />
 
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
           <Card>

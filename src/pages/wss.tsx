@@ -36,6 +36,20 @@ const trade = {
   m: false,
 };
 
+const bnbbtc = {
+  e: "trade",
+  E: 1715289350589,
+  s: "BNBBTC",
+  t: 242118197,
+  p: "0.00953800",
+  q: "0.06000000",
+  b: 1904266577,
+  a: 1904259428,
+  T: 1715289350589,
+  m: false,
+  M: true,
+};
+
 // BNB - binance coin
 // BTC - bitcoin
 // ETH - etherium
