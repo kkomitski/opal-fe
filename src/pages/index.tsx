@@ -6,6 +6,9 @@
 // export default function Home() {
 //   return <main className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}></main>;
 // }
+
+import bnbbtc from "@/lib/bnbbtc.json";
+
 import Link from "next/link";
 import {
   Activity,
@@ -39,7 +42,10 @@ import WSS from "./wss";
 import useTradeSocket from "@/hooks/sockets/useTradeSocket";
 import useBookTickerSocket from "@/hooks/sockets/useBookTickerSocket";
 import CandlestickChart from "../components/charts/candlestick";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import CandleStickChart from "../components/charts/candlestick";
+import { Slider } from "@/components/ui/slider";
+import CandlestickBlock from "@/components/molecules/candlestick-block";
 
 export const description =
   "An application shell with a header and main content area. The header has a navbar, a search input and and a user nav dropdown. The user nav is toggled by a button with an avatar image.";
@@ -48,13 +54,12 @@ export const iframeHeight = "825px";
 
 export const containerClassName = "w-full h-full";
 
+function formatDate(epochTimestamp: EpochTimeStamp) {
+  const date = new Date(epochTimestamp);
+  return date.toISOString();
+}
+
 export default function Dashboard() {
-  // const { message, error } = useTradeSocket("bnbbtc");
-  // const { message, error } = useBookTickerSocket("bnbbtc");
-
-  // console.log(message);
-  // console.log(book)
-
   return (
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -203,8 +208,27 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-          <Card className="xl:col-span-2" x-chunk="dashboard-01-chunk-4">
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
+          <CandlestickBlock
+            title="BNB/BTC"
+            className="col-span-2 flex flex-col justify-between"
+            chartProps={{
+              data: bnbbtc,
+              options: {
+                date: (d: any) => d[0],
+                high: (d: any) => d[2],
+                low: (d: any) => d[3],
+                open: (d: any) => d[1],
+                close: (d: any) => d[4],
+                yLabel: "↑ Price ($)",
+                xLabel: "Time",
+                width: 1000,
+                // height: 500,
+                // marginLeft: 20,
+              },
+            }}
+          />
+          {/* <Card className="xl:col-span-2" x-chunk="dashboard-01-chunk-4">
             <CardHeader className="flex flex-row items-center">
               <div className="grid gap-2">
                 <CardTitle>Transactions</CardTitle>
@@ -302,8 +326,8 @@ export default function Dashboard() {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
-          <Card x-chunk="dashboard-01-chunk-5">
+          </Card> */}
+          <Card className="col-span-1">
             <CardHeader>
               <CardTitle>Recent Sales</CardTitle>
             </CardHeader>

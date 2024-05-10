@@ -1,41 +1,17 @@
 // @ts-nocheck
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 
-interface DataItem {
-  Date: number;
-  Open: string;
-  High: string;
-  Low: string;
-  Close: string;
-  Volume: string;
-  CloseTime: number;
-  QuoteAssetVolume: string;
-  NumberOfTrades: number;
-  TakerBuyBaseAssetVolume: string;
-  TakerBuyQuoteAssetVolume: string;
-}
-
-interface CandlestickChartProps {
-  data: DataItem[];
-}
-
-function formatDate(epochTimestamp) {
+function epochToISO(epochTimestamp: EpochTimeStamp) {
   const date = new Date(epochTimestamp);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed in JavaScript
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+  return date.toISOString();
 }
-// Copyright 2021 Observable, Inc.
-// Released under the ISC license.
-// https://observablehq.com/@d3/candlestick-chart
+
 function CandlestickChartSVG(
   data,
   {
     // date = (d: any) => formatDate(d[0]), // given d in data, returns the (temporal) x-value
-    date = (d: any) => d[0], // given d in data, returns the (temporal) x-value
+    date = (d: any) => epochToISO(d[0]), // given d in data, returns the (temporal) x-value
     high = (d: any) => d[2], // given d in data, returns a (quantitative) y-value
     low = (d: any) => d[3], // given d in data, returns a (quantitative) y-value
     open = (d: any) => d[1], // given d in data, returns a (quantitative) y-value
@@ -61,10 +37,14 @@ function CandlestickChartSVG(
     stroke = "currentColor", // stroke color for the daily rule
     strokeLinecap = "round", // stroke line cap for the rules
     colors = ["#4daf4a", "#999999", "#e41a1c"], // [up, no change, down]
+    zoom = 100,
   } = {}
 ) {
-  data = data.slice(0, 50);
-  // console.log(data);
+  const zoomToDecimal = zoom * 0.01;
+  const zoomPercent = data.length * zoomToDecimal;
+
+  data = data.slice(-zoomPercent);
+
   // Compute values.
   const X = d3.map(data, date);
   // console.log(X);
@@ -75,31 +55,11 @@ function CandlestickChartSVG(
   const I = d3.range(X.length);
 
   const weeks = (start, stop, stride) => d3.utcMonday.every(stride).range(start, +stop + 1);
-  // const weekdays = (start, stop) =>
-  // d3.utcDays(start, +stop + 1).filter((d) => d.getUTCDay() !== 0 && d.getUTCDay() !== 6);
-  const weekdays = (start, stop) => {
-    start = new Date(start);
-    stop = new Date(stop);
-    // stop.setHours(23, 59, 59, 999); // set time to just before midnight on the following day
-    return d3.utcDays(start, +stop + 1).reduce((acc, d) => {
-      if (d.getUTCDay() !== 0 && d.getUTCDay() !== 6) {
-        acc.push(d.toISOString());
-      }
-      return acc;
-    }, []);
-    // return d3.utcDays(start, stop).map((d) => {
-    //   if (d.getUTCDay() !== 6 && d.getUTCDay() !== 7) {
-    //     return d.toISOString();
-    //   }
-    // });
-  };
 
   // Compute default domains and ticks.
-  if (xDomain === undefined) xDomain = weekdays(d3.min(X), d3.max(X));
+  if (xDomain === undefined) xDomain = X;
   if (yDomain === undefined) yDomain = [d3.min(Yl), d3.max(Yh)];
   if (xTicks === undefined) xTicks = weeks(d3.min(xDomain), d3.max(xDomain), 2);
-
-  console.log(X);
 
   // Construct scales and axes.
   // If you were to plot a stock using d3.scaleUtc, you’d see distracting gaps
@@ -197,17 +157,28 @@ function CandlestickChartSVG(
   return svg.node();
 }
 
-export default function CandleStickChart({ data, options }) {
+export default function CandleStickChart({ data, options, className }) {
   const ref = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const newSvg = CandlestickChartSVG(data, options);
-    if (ref.current.firstChild) {
+    if (ref?.current?.firstChild) {
+      setLoading(false);
       ref.current.replaceChild(newSvg, ref.current.firstChild);
     } else {
+      setLoading(false);
       ref.current.appendChild(newSvg);
     }
-  }, [data]);
+  }, [data, options]);
 
-  return <div ref={ref} />;
+  // if (loading) return <div ref={ref}>Loading....</div>;
+
+  return (
+    <div className={`flex justify-center items-center ${className}`}>
+      <p>{loading ? "Loading..." : null}</p>
+      <div ref={ref} />
+    </div>
+  );
 }
