@@ -25,6 +25,16 @@ const useBookTickerSocket = (symbol: Symbols) => {
   const [error, setError] = useState<Event>();
 
   useEffect(() => {
+    // @ts-ignore
+    if (window.activeSockets?.bookTicker) return;
+
+    // @ts-ignore
+    window.activeSockets = {
+      // @ts-ignore
+      ...window.activeSockets,
+      bookTicker: true,
+    };
+
     const socket = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@bookTicker`); // @1s - at 1 second
 
     socket.onopen = () => {
@@ -46,9 +56,9 @@ const useBookTickerSocket = (symbol: Symbols) => {
     };
 
     // Close the socket after 10 seconds
-    setTimeout(() => {
-      socket.close();
-    }, 30000);
+    // setTimeout(() => {
+    //   socket.close();
+    // }, 30000);
     return () => socket.close();
   }, [symbol]);
 

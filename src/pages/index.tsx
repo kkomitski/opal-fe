@@ -1,12 +1,3 @@
-// import Image from "next/image";
-// import { Inter } from "next/font/google";
-
-// const inter = Inter({ subsets: ["latin"] });
-
-// export default function Home() {
-//   return <main className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}></main>;
-// }
-
 import bnbbtc from "@/lib/bnbbtc.json";
 
 import Link from "next/link";
@@ -38,14 +29,12 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Image from "next/image";
-import WSS from "./wss";
-import useTradeSocket from "@/hooks/sockets/useTradeSocket";
-import useBookTickerSocket from "@/hooks/sockets/useBookTickerSocket";
-import CandlestickChart from "../components/charts/candlestick";
-import { useEffect, useRef, useState } from "react";
-import CandleStickChart from "../components/charts/candlestick";
-import { Slider } from "@/components/ui/slider";
 import CandlestickBlock from "@/components/molecules/candlestick-block";
+import SearchInstruments from "@/components/molecules/search-intstruments";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import AveragePriceCard from "@/components/atoms/average-price-card";
+import useTradeSocket from "@/hooks/sockets/useTradeSocket";
 
 export const description =
   "An application shell with a header and main content area. The header has a navbar, a search input and and a user nav dropdown. The user nav is toggled by a button with an avatar image.";
@@ -54,12 +43,37 @@ export const iframeHeight = "825px";
 
 export const containerClassName = "w-full h-full";
 
-function formatDate(epochTimestamp: EpochTimeStamp) {
-  const date = new Date(epochTimestamp);
-  return date.toISOString();
-}
-
 export default function Dashboard() {
+  const { asPath } = useRouter();
+
+  const [data, setData] = useState();
+  const [title, setTitle] = useState("");
+  const [symbol, setSymbol] = useState("");
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(asPath.substring(1));
+    const symbolParam = searchParams.get("symbol");
+
+    if (symbolParam) {
+      setSymbol(symbolParam);
+    }
+  }, [asPath, symbol]);
+
+  // return (
+  //   <>
+  //     <CandlestickBlock
+  //       // title={title}
+  //       symbol={symbol}
+  //       className="col-span-2 flex flex-col justify-between"
+  //       // data={data}
+  //       chartOptions={{
+  //         yLabel: "↑ Price ($)",
+  //         xLabel: "Time",
+  //       }}
+  //     />
+  //   </>
+  // );
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -112,16 +126,7 @@ export default function Dashboard() {
           </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <form className="ml-auto flex-1 sm:flex-initial">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search products..."
-                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-              />
-            </div>
-          </form>
+          <SearchInstruments />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
@@ -165,18 +170,7 @@ export default function Dashboard() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Balance</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">$45,231.89</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-constructive">+20.1%</span> from last month
-              </p>
-            </CardContent>
-          </Card>
+          {symbol && <AveragePriceCard symbol={symbol} />}
           <Card x-chunk="dashboard-01-chunk-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
@@ -210,22 +204,13 @@ export default function Dashboard() {
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
           <CandlestickBlock
-            title="BNB/BTC"
+            // title={title} //
+            symbol={symbol}
             className="col-span-2 flex flex-col justify-between"
-            chartProps={{
-              data: bnbbtc,
-              options: {
-                date: (d: any) => d[0],
-                high: (d: any) => d[2],
-                low: (d: any) => d[3],
-                open: (d: any) => d[1],
-                close: (d: any) => d[4],
-                yLabel: "↑ Price ($)",
-                xLabel: "Time",
-                width: 1000,
-                // height: 500,
-                // marginLeft: 20,
-              },
+            // data={data}
+            chartOptions={{
+              yLabel: "↑ Price ($)",
+              xLabel: "Time",
             }}
           />
           {/* <Card className="xl:col-span-2" x-chunk="dashboard-01-chunk-4">

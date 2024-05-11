@@ -35,15 +35,15 @@ const useTradeSocket = (symbol: Symbols) => {
   const [error, setError] = useState<Event>();
 
   useEffect(() => {
-    const socket = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@trade`); // @1s - at 1 second
+    const socket = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@trade`);
 
     socket.onopen = () => {
       console.log("WebSocket is connected");
     };
 
     socket.onmessage = (event) => {
-      // console.log("Received data from server:", event.data);
-      setMessage(event.data);
+      const data = JSON.parse(event.data);
+      setMessage(data);
     };
 
     socket.onerror = (errorEvent) => {
@@ -55,15 +55,16 @@ const useTradeSocket = (symbol: Symbols) => {
       console.warn("WebSocket connection closed");
     };
 
-    // Close the socket after 10 seconds
+    // Close the socket after 30 seconds
     setTimeout(() => {
       socket.close();
-    }, 30000);
+    }, 5000);
     return () => socket.close();
   }, [symbol]);
 
-  // If message or error
-  return { message: message || null, error: error || null };
+  console.log(message);
+
+  return { message: message, error: error || null };
 };
 
 export default useTradeSocket;
