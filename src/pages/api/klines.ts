@@ -18,8 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   if (req.query.startTime) url.searchParams.set("startTime", req.query.startTime as string);
 
   const response = await fetch(url.href);
-  console.log();
   const data = await response.json();
-  console.log(data);
+
+  if (!response.ok) return res.status(400).json({ error: "Error fetching data", message: data.msg });
   res.status(200).json(data);
 }

@@ -63,3 +63,32 @@
     @apply bg-background text-foreground max-w-[1600px] mx-auto;
   }
 }
+
+/* Crosshair */
+.cursor {
+  /* position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0; */
+  z-index: 20;
+  pointer-events: none;
+}
+
+.vt {
+  position: relative;
+  z-index: 20;
+  /* top: 0; */
+  /* bottom: 0; */
+  width: 5px;
+  /* background: var(--primary); */
+}
+
+.hl {
+  position: relative;
+  z-index: 20;
+  height: 5px;
+  /* left: 0; */
+  /* right: 0; */
+  /* background: var(--primary); */
+}

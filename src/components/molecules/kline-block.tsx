@@ -1,49 +1,44 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import CandleStickChart from "../charts/candlestick";
+import CandleStickChart from "@/components/charts/kline";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { Slider } from "../ui/slider";
-import useCandlestickSocket from "@/hooks/sockets/useCandlestickSocket";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Slider } from "../ui/slider";
+import { KlineResponseMessage, Intervals } from "@/hooks/sockets/types";
+import useSocket from "@/hooks/sockets/useSocket";
+import KlineUtils from "../charts/kline.utils";
+import { timeDay, timeMonth, timeYear } from "d3";
+import { useRouter } from "next/router";
 
-type Props = {};
-
-function monthsAgoToEpoch(months: number) {
-  const date = new Date();
-  date.setMonth(date.getMonth() - months);
-  return date.getTime();
-}
-
-function daysAgoToEpoch(days: number) {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  return date.getTime();
-}
+export type TimeFrames = "1D" | "5D" | "1M" | "3M" | "6M" | "1Y" | "5Y" | "All";
 
 const CandlestickBlock = ({ title, chartProps, className, symbol, chartOptions }: any) => {
-  // const { message, error } = useCandlestickSocket(symbol);
-  const candlestickBlockRef = useRef<HTMLDivElement>(null);
-
   const [defaultZoom, setdefaultZoom] = useState(5);
   const [data, setData] = useState();
 
-  const [selectedTimeFrame, setSelectedTimeFrame] = useState("5Y");
+  const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrames>("6M");
 
-  // useEffect(() => {
-  //   console.log(selectedTimeFrame);
-  //   window.addEventListener("resize", () => {
-  //     extendedChartProps.options.width = candlestickBlockRef?.current?.offsetWidth;
-  //   });
-  //   // console.log(candlestickBlockRef.current.offsetWidth);
-  // }, [selectedTimeFrame]);
+  const candlestickBlockRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  // const { message, error } = useSocket<KlineResponseMessage>("kline", symbol, { interval: "1s", timeout: 5000 });
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(router.asPath.substring(1));
+    const timeframeParam = searchParams.get("tf");
+
+    if (timeframeParam) {
+      setSelectedTimeFrame(timeframeParam as TimeFrames);
+    }
+  }, [router?.asPath, symbol]);
 
   useEffect(() => {
     if (symbol) {
-      async function fetchData(selectedTimeFrame: string, symbol: string) {
+      const fetchData = async (selectedTimeFrame: TimeFrames, symbol: string) => {
         try {
           const endpoint = "/api/klines?";
           const base = window.location.origin;
@@ -51,41 +46,57 @@ const CandlestickBlock = ({ title, chartProps, className, symbol, chartOptions }
           const url = new URL(base + endpoint);
 
           let limit = 0;
-          let interval = "1d";
+          let interval: Intervals = "1d";
           let startTime = 0;
+          let endTime = 0;
+
+          const now = new Date();
+
+          const urlWithTimeFrame = new URL(window.location.href);
+
+          // This line replaces the current URL without refreshing page
+          // router.push(urlWithInstrument.pathname + urlWithInstrument.search, undefined, { shallow: true });
+
           switch (selectedTimeFrame) {
             case "All":
               interval = "1w";
-              startTime = monthsAgoToEpoch(200); // 5 Years
+              limit = 1000; // Max limit
+              urlWithTimeFrame.searchParams.set("tf", "All");
               break;
             case "5Y":
               interval = "1w";
-              limit = 730;
-              startTime = monthsAgoToEpoch(12 * 5); // 5 Years
+              startTime = timeYear.offset(now, -5).getTime(); // 5 Years
+              urlWithTimeFrame.searchParams.set("tf", "5Y");
               break;
             case "1Y":
               interval = "1d";
-              startTime = monthsAgoToEpoch(12); // 1 Year
+              startTime = timeYear.offset(now, -12).getTime(); // 1 Year
+              urlWithTimeFrame.searchParams.set("tf", "1Y");
               break;
             case "6M":
               interval = "1d";
-              startTime = monthsAgoToEpoch(6);
+              startTime = timeMonth.offset(now, -6).getTime();
+              urlWithTimeFrame.searchParams.set("tf", "6M");
               break;
             case "3M":
               interval = "1d";
-              startTime = monthsAgoToEpoch(3);
+              startTime = timeMonth.offset(now, -3).getTime();
+              urlWithTimeFrame.searchParams.set("tf", "3M");
               break;
             case "1M":
               interval = "6h";
-              startTime = monthsAgoToEpoch(1);
+              startTime = timeMonth.offset(now, -1).getTime();
+              urlWithTimeFrame.searchParams.set("tf", "1M");
               break;
             case "5D":
               interval = "1h";
-              startTime = daysAgoToEpoch(5);
+              startTime = timeDay.offset(now, -5).getTime();
+              urlWithTimeFrame.searchParams.set("tf", "5D");
               break;
-            case "1D":
+            case "1D": // TODO: Add another version of 1D for increased zoom level (ie zoom > 80 => interval = 1s)
               interval = "15m";
-              startTime = daysAgoToEpoch(1);
+              startTime = timeDay.offset(timeDay.floor(now), -1).getTime();
+              urlWithTimeFrame.searchParams.set("tf", "1D");
               break;
           }
 
@@ -94,38 +105,45 @@ const CandlestickBlock = ({ title, chartProps, className, symbol, chartOptions }
 
           if (limit) url.searchParams.set("limit", limit.toString());
           if (startTime) url.searchParams.set("startTime", startTime.toString());
+          if (endTime) url.searchParams.set("endTime", endTime.toString());
 
-          console.log(url.href);
           const response = await fetch(url.href);
           const data = await response.json();
 
           if (!data.error) {
             setData(data);
+            router.push(urlWithTimeFrame.pathname + urlWithTimeFrame.search, undefined, { shallow: true });
           }
         } catch (error) {
           console.error("Error:", error);
         }
-      }
+      };
 
       fetchData(selectedTimeFrame, symbol);
     }
   }, [symbol, selectedTimeFrame]);
 
+  // TODO: Finish implementing the kline live updates from the websocket for increased zoom levels
+  // useEffect(() => {
+  //   if (!restDataReady) return;
+  //   if (message && data.length) {
+  //     const newKline = new Array(11); // Prealloc memory block
+  //     newKline[0] = message.k.t;
+  //     newKline[1] = message.k.o;
+  //     newKline[2] = message.k.h;
+  //     newKline[3] = message.k.l;
+  //     newKline[4] = message.k.c;
+
+  //     const newArray = [...data, newKline];
+  //     console.log(newArray);
+
+  //     setData(newArray);
+  //   }
+  // }, [message]);
+
   return (
-    <Card className={className} ref={candlestickBlockRef}>
-      <CardHeader className="flex flex-row items-center">
-        <div className="grid gap-2">
-          <CardTitle>{symbol ? symbol.toUpperCase() : "Loading..."}</CardTitle>
-          <CardDescription>Trend line</CardDescription>
-        </div>
-        <Button asChild size="sm" className="ml-auto gap-1">
-          <Link href="/#">
-            View All
-            <ArrowUpRight className="h-4 w-4" />
-          </Link>
-        </Button>
-      </CardHeader>
-      <CardContent>
+    <Card className={`${className} h-full min-h-[475px]`} ref={candlestickBlockRef}>
+      <CardContent className="pt-10 relative flex flex-col justify-end items-between h-full">
         <CandleStickChart data={data} options={chartOptions} zoom={defaultZoom} selectedTimeFrame={selectedTimeFrame} />
         <Slider
           className="pt-5"
@@ -135,7 +153,7 @@ const CandlestickBlock = ({ title, chartProps, className, symbol, chartOptions }
           step={1}
           onValueChange={(v) => setdefaultZoom(v[0])}
         />
-        <RadioGroup defaultValue="6M" onValueChange={setSelectedTimeFrame} className="flex pt-6">
+        <RadioGroup defaultValue="6M" onValueChange={(v: TimeFrames) => setSelectedTimeFrame(v)} className="flex pt-6">
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="All" className="hidden" id="r1" />
             <Label htmlFor="r1" className={`cursor-pointer ${selectedTimeFrame === "All" && "text-primary"}`}>

@@ -29,7 +29,6 @@ const SearchInstruments = (props: Props) => {
         const dataJson = await response.json();
 
         const filteredData: any = [];
-        console.log(dataJson.symbols.filter((item: any) => item.symbol === "DOGEBNB" || item.symbol === "BTCUSDT"));
 
         dataJson.symbols.forEach((item: any) => {
           if (item.status === "TRADING")
