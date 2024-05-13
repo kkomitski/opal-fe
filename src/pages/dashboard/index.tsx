@@ -26,6 +26,7 @@ import GenericCard from "@/components/atoms/generic-card";
 import SkeletonCard from "@/components/atoms/skeleton-card";
 import TradesCard from "@/components/atoms/trades-card";
 import InstrumentCardCollection from "@/components/molecules/instrument-cards-collection";
+import { useAuth } from "@/auth/auth-context";
 
 export const description =
   "An application shell with a header and main content area. The header has a navbar, a search input and and a user nav dropdown. The user nav is toggled by a button with an avatar image.";
@@ -35,8 +36,10 @@ export const iframeHeight = "825px";
 export const containerClassName = "w-full h-full";
 
 export default function Dashboard() {
-  const { asPath } = useRouter();
+  const { asPath, push } = useRouter();
   const [symbol, setSymbol] = useState("");
+
+  const { logout } = useAuth();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(asPath.substring(1));
@@ -44,8 +47,21 @@ export default function Dashboard() {
 
     if (symbolParam) {
       setSymbol(symbolParam);
+    } else {
+      setSymbol("BTCUSDT");
     }
   }, [asPath, symbol]);
+
+  const handleLogout = async () => {
+    // setError('');
+
+    try {
+      await logout();
+      push("/login");
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   // return (
   //   <>
@@ -62,7 +78,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-[9999]">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
           <Link href="/#" className="flex items-center gap-2 text-lg font-semibold md:text-base mr-3">
             <Image src="/onyx-logo.svg" width="500" height="400" alt="logo" className="max-w-[110px]" />
@@ -126,7 +142,7 @@ export default function Dashboard() {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
