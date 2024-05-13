@@ -46,7 +46,7 @@ const SearchInstruments = (props: Props) => {
 
   return (
     <>
-      <form className="ml-auto flex-1 sm:flex-initial">
+      <form className="ml-auto flex-1 sm:flex-initial bg-background z-[9999]">
         <div className="relative">
           <ReactSearchAutocomplete
             onSelect={handleOnSelect}

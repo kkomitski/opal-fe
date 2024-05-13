@@ -1,8 +1,5 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Skeleton } from "../ui/skeleton";
-
-type Props = {};
 
 // FIXME: add prop types
 const GenericCard = ({ title, heading, subheading, icon }: any) => {
@@ -14,7 +11,7 @@ const GenericCard = ({ title, heading, subheading, icon }: any) => {
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{heading}</div>
-        <p className="text-xs text-muted-foreground">{subheading}</p>
+        <div className="text-xs text-muted-foreground">{subheading}</div>
       </CardContent>
     </Card>
   );

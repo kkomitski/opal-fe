@@ -35,7 +35,6 @@ const TradesCard = ({ symbol }: { symbol: string }) => {
         const data = await response.json();
 
         setTrades(data);
-        console.log(data);
         /**
          * Do a REST fetch to prevent the price from sitting on "Loading... "
          * until the socket connection is established and starts ticking

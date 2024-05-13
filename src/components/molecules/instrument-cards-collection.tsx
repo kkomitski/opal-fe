@@ -1,8 +1,5 @@
-import { symbol } from "d3";
-import { CreditCard, Activity } from "lucide-react";
+import { CreditCard, Activity, MessageCircleQuestionIcon, HandCoinsIcon } from "lucide-react";
 import React, { useCallback, useEffect, useRef } from "react";
-import AveragePriceCard from "../atoms/average-price-card";
-import GenericCard from "../atoms/generic-card";
 import SkeletonCard from "../atoms/skeleton-card";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import useSocket from "@/hooks/sockets/useSocket";
@@ -14,6 +11,8 @@ import { formatFloat } from "@/lib/utils";
 const InstrumentCardCollection = ({ symbol }: { symbol: string }) => {
   const { message, error } = useSocket<TickerResponseMessage>("ticker", symbol);
 
+  const vals = useRef({ lastPrice: "", lastBestBid: "", lastBestAsk: "" });
+
   const totalTrades = message?.n;
   const symb = message?.s;
 
@@ -21,13 +20,8 @@ const InstrumentCardCollection = ({ symbol }: { symbol: string }) => {
   const avgPrice = message?.w;
   const priceChangePercent = message?.P;
 
-  const lastPrice = useRef("");
   const priceDivRef = useRef<HTMLDivElement>(null);
-
-  const lastBestBid = useRef("");
   const bestBidRef = useRef<HTMLDivElement>(null);
-
-  const lastBestAsk = useRef("");
   const bestAskRef = useRef<HTMLDivElement>(null);
 
   // Best bid
@@ -38,118 +32,124 @@ const InstrumentCardCollection = ({ symbol }: { symbol: string }) => {
   const bestAskPrice = message?.a;
   const bestAskQty = message?.A;
 
-  useBlinkEffect(priceDivRef, lastPrice.current);
-  useBlinkEffect(bestBidRef, lastBestBid.current);
-  useBlinkEffect(bestAskRef, lastPrice.current);
+  useBlinkEffect(priceDivRef, vals.current.lastPrice);
+  useBlinkEffect(bestBidRef, vals.current.lastBestBid);
+  useBlinkEffect(bestAskRef, vals.current.lastBestAsk);
 
   // Prevent infinite loop
-  const updatePrice = useCallback(() => {
-    if (avgPrice !== undefined && avgPrice !== lastPrice.current) {
-      lastPrice.current = avgPrice;
+  const updateVals = useCallback(() => {
+    if (avgPrice && avgPrice !== vals.current.lastPrice) {
+      vals.current.lastPrice = avgPrice;
     }
-  }, [avgPrice]);
 
-  const updateBestBid = useCallback(() => {
-    if (bestBidPrice !== undefined && bestBidPrice !== lastBestBid.current) {
-      lastBestBid.current = bestBidPrice;
+    if (bestBidPrice && bestBidPrice !== vals.current.lastBestBid) {
+      vals.current.lastBestBid = bestBidPrice;
     }
-  }, [bestBidPrice]);
 
-  const updateBestAsk = useCallback(() => {
-    if (bestAskPrice !== undefined && bestAskPrice !== lastBestAsk.current) {
-      lastBestAsk.current = bestAskPrice;
+    if (bestAskPrice && bestAskPrice !== vals.current.lastBestAsk) {
+      vals.current.lastBestAsk = bestAskPrice;
     }
-  }, [bestAskPrice]);
+  }, [avgPrice, bestBidPrice, bestAskPrice]);
 
   useEffect(() => {
-    updatePrice();
-  }, [bestAskPrice, updatePrice]);
-
-  useEffect(() => {
-    updatePrice();
-  }, [avgPrice, updatePrice]);
-
-  useEffect(() => {
-    updateBestBid();
-  }, [bestBidPrice, updateBestBid]);
-
-  useEffect(() => {
-    console.log(message);
-  }, [message]);
+    updateVals();
+  }, [avgPrice, bestBidPrice, bestAskPrice, updateVals]);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
       {/* Title Card */}
       {symbol ? (
-        <GenericCard
-          title="Symbol"
-          heading={symbol}
-          subheading={
-            totalTrades ? `Total trades: ${totalTrades}` : <Skeleton className="h-2 mt-2.5 w-28 rounded-[4px]" />
-          }
-          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-        />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Symbol</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {symb ? symb : <Skeleton className="h-6 font-bold mt-1.5 w-48 rounded-[4px]" />}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {totalTrades ? `Total trades: ${totalTrades}` : <Skeleton className="h-2 mt-2.5 w-28 rounded-[4px]" />}
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <SkeletonCard />
       )}
 
       {/* Average Price Card */}
       {symbol ? (
-        <GenericCard
-          title="Current average price"
-          heading={
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Current Average Price</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
             <div ref={priceDivRef} className="text-2xl font-bold">
-              {lastPrice.current ? (
-                formatFloat(lastPrice.current)
+              {vals.current.lastPrice ? (
+                formatFloat(vals.current.lastPrice)
               ) : (
                 <Skeleton className="h-6 mb-2 w-28 w-26 rounded-[4px]" />
               )}
             </div>
-          }
-          subheading={
-            <p className="text-xs text-muted-foreground">
-              <span
-                className={`pr-1.5 ${priceChangePercent?.startsWith("-") ? "text-destructive" : "text-constructive"}`}
-              >
-                {priceChangePercent?.startsWith("-") ? `-${priceChangePercent}` : `+${priceChangePercent}`}
-              </span>
-              from last month
-            </p>
-          }
-          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-        />
+            {priceChangePercent ? (
+              <div className="text-xs text-muted-foreground">
+                <span
+                  className={`pr-1.5 ${priceChangePercent?.startsWith("-") ? "text-destructive" : "text-constructive"}`}
+                >
+                  {priceChangePercent?.startsWith("-") ? `${priceChangePercent}%` : `+${priceChangePercent}%`}
+                </span>
+                from last month
+              </div>
+            ) : (
+              <Skeleton className="h-2 mt-2.5 w-28 rounded-[4px]" />
+            )}
+          </CardContent>
+        </Card>
       ) : (
         <SkeletonCard />
       )}
 
       {/* Best Bid Card */}
       {symbol ? (
-        <GenericCard
-          title="Best bid"
-          heading={
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Best bid</CardTitle>
+            <HandCoinsIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
             <div ref={bestBidRef} className="text-2xl font-bold text-constructive">
-              {bestBidPrice ? formatFloat(bestBidPrice) : <Skeleton className="h-6 mb-2 w-28 w-26 rounded-[4px]" />}
+              {bestBidPrice ? (
+                formatFloat(bestBidPrice)
+              ) : (
+                <Skeleton className="h-6 mb-2 w-28 w-26 rounded-[4px] max-w-[200px]" />
+              )}
             </div>
-          }
-          subheading={<p className="text-xs text-muted-foreground">Quantity: {bestBidQty}</p>}
-          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-        />
+            <div className="text-xs text-muted-foreground">
+              {bestBidQty ? `Quantity: ${bestBidQty}` : <Skeleton className="h-2 mt-2.5 w-28 rounded-[4px]" />}
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <SkeletonCard />
       )}
 
       {/* Best Ask Card */}
       {symbol ? (
-        <GenericCard
-          title="Best ask"
-          heading={
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Best ask</CardTitle>
+            <MessageCircleQuestionIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
             <div ref={bestAskRef} className="text-2xl font-bold text-destructive">
               {bestAskPrice ? formatFloat(bestAskPrice) : <Skeleton className="h-6 mb-2 w-28 w-26 rounded-[4px]" />}
             </div>
-          }
-          subheading={<p className="text-xs text-muted-foreground">Quantity: {bestAskQty}</p>}
-          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-        />
+            <div className="text-xs text-muted-foreground">
+              {bestAskQty ? `Quantity: ${bestAskQty}` : <Skeleton className="h-2 mt-2.5 w-28 rounded-[4px]" />}
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <SkeletonCard />
       )}
