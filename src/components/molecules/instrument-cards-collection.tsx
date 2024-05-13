@@ -126,7 +126,11 @@ const InstrumentCardCollection = ({ symbol }: { symbol: string }) => {
               )}
             </div>
             <div className="text-xs text-muted-foreground">
-              {bestBidQty ? `Quantity: ${bestBidQty}` : <Skeleton className="h-2 mt-2.5 w-28 rounded-[4px]" />}
+              {bestBidQty ? (
+                `Quantity: ${formatFloat(bestBidQty)}`
+              ) : (
+                <Skeleton className="h-2 mt-2.5 w-28 rounded-[4px]" />
+              )}
             </div>
           </CardContent>
         </Card>
@@ -146,7 +150,11 @@ const InstrumentCardCollection = ({ symbol }: { symbol: string }) => {
               {bestAskPrice ? formatFloat(bestAskPrice) : <Skeleton className="h-6 mb-2 w-28 w-26 rounded-[4px]" />}
             </div>
             <div className="text-xs text-muted-foreground">
-              {bestAskQty ? `Quantity: ${bestAskQty}` : <Skeleton className="h-2 mt-2.5 w-28 rounded-[4px]" />}
+              {bestAskQty ? (
+                `Quantity: ${formatFloat(bestAskQty)}`
+              ) : (
+                <Skeleton className="h-2 mt-2.5 w-28 rounded-[4px]" />
+              )}
             </div>
           </CardContent>
         </Card>
