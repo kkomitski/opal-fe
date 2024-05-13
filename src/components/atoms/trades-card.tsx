@@ -10,7 +10,7 @@ import { TradeResponseMessage } from "@/hooks/sockets/types";
 import useBlinkEffect from "@/hooks/etc/useBlinkEffect";
 import { formatFloat } from "@/lib/utils";
 
-const TRADES_IN_MEMORY = 12;
+const TRADES_IN_MEMORY = 10;
 
 const TradesCard = ({ symbol }: { symbol: string }) => {
   const { message, error } = useSocket<TradeResponseMessage>("trade", symbol);
@@ -65,7 +65,7 @@ const TradesCard = ({ symbol }: { symbol: string }) => {
   // useBlinkEffect(ref, trades[0]);
 
   return (
-    <Card className="xl:col-span-1" x-chunk="dashboard-01-chunk-4">
+    <Card className="col-span-2 xl:col-span-1">
       <CardHeader className="flex flex-row items-center">
         <div className="grid gap-2">
           <CardTitle>Market Trades</CardTitle>

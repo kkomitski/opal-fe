@@ -6,8 +6,6 @@ import { defineConfig, devices } from "@playwright/test";
  */
 // require('dotenv').config();
 
-console.log(process.env.VITE_ENV);
-
 /**
  * See https://playwright.dev/docs/test-configuration.
  */

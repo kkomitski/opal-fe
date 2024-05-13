@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "npx playwright test --config playwright.config.ts"
+    "test": "npx playwright install chromium && npx playwright test --config playwright.config.ts"
   },
   "dependencies": {
     "@playwright/test": "^1.44.0",

@@ -85,7 +85,7 @@ const InstrumentCardCollection = ({ symbol }: { symbol: string }) => {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div ref={priceDivRef} className="text-2xl font-bold">
+            <div test-id="current-average-price" ref={priceDivRef} className="text-2xl font-bold">
               {vals.current.lastPrice ? (
                 formatFloat(vals.current.lastPrice)
               ) : (

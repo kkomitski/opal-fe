@@ -142,8 +142,8 @@ const CandlestickBlock = ({ title, chartProps, className, symbol, chartOptions }
   // }, [message]);
 
   return (
-    <Card className={`${className} h-full min-h-[475px]`} ref={candlestickBlockRef}>
-      <CardContent className="pt-10 relative flex flex-col justify-end items-between h-full">
+    <Card className={`${className} h-full`} ref={candlestickBlockRef}>
+      <CardContent className="relative flex flex-col justify-end items-between h-full w-full">
         <CandleStickChart data={data} options={chartOptions} zoom={defaultZoom} selectedTimeFrame={selectedTimeFrame} />
         <Slider
           className="pt-5"

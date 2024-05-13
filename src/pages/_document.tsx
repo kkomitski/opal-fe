@@ -6,7 +6,7 @@ export default function Document() {
       <Head>
         <title>Flux</title>
         <meta name="description" content="Flux" />
-        <link rel="icon" href="/onyx-logo.svg" />
+        <link rel="icon" href="/onyx-logo-only.svg" />
       </Head>
       <body>
         <Main />

@@ -12,24 +12,26 @@ export const iframeHeight = "825px";
 export const containerClassName = "w-full h-full";
 
 export default function Dashboard() {
-  const { asPath } = useRouter();
+  const { asPath, push } = useRouter();
   const [symbol, setSymbol] = useState("");
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(asPath.substring(1));
-    const symbolParam = searchParams.get("symbol");
+    const url = new URL(window.location.href);
+    const symbolParam = url.searchParams.get("symbol");
 
     if (symbolParam) {
       setSymbol(symbolParam);
     } else {
-      setSymbol("BTCUSDT");
+      url.searchParams.set("symbol", "BTCUSDT");
+      push(url.pathname + url.search, undefined, { shallow: true });
+      // setSymbol("BTCUSDT"); // Default
     }
   }, [asPath, symbol]);
 
   return (
     <>
       <InstrumentCardCollection symbol={symbol} />
-      <div className="grid gap-4 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
+      <div className="grid gap-4 md:gap-8 lg:grid-cols-3 xl:grid-cols-3 h-[400px]">
         <CandlestickBlock
           symbol={symbol}
           className="col-span-2 flex flex-col justify-between"
