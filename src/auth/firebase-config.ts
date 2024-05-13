@@ -33,10 +33,6 @@ const firebaseConfig = {
   measurementId: NEXT_PUBLIC_MEASUREMENT_ID,
 };
 
-console.log(process.env);
-
-console.log(firebaseConfig);
-
 function initializeFirebase() {
   try {
     return getApp();
